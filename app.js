@@ -10,7 +10,7 @@ app.get("/", (req, res) => {
   const amount = "1001";
   const currency = "EUR";
   const sharedSecret = "Y9go4mpkml";
-  const responseUrl = "http://localhost:3000/response";
+  const responseUrl = `${process.env.APP_URL || 'http://localhost:3000'}/response`;
 
   const timestamp = new Date().toISOString().slice(0, 19).replace(/[-T:]/g, "");
   const hashString = `${timestamp}.${merchantId}.${orderId}.${amount}.${currency}`;
