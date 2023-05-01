@@ -28,6 +28,7 @@ app.get("/", (req, res) => {
 
 // Handle the response from Realex
 app.post("/response", (req, res) => {
+  console.log("hi");
   let data = "";
 
   req.on("data", chunk => {
@@ -45,12 +46,12 @@ app.post("/response", (req, res) => {
 
     if (RESULT === "00") {
       console.log(`Payment for order ${ORDER_ID} was successful.`);
+      res.send('Your payment was successful. Thank you for your purchase.');
     } else {
       console.log(`Payment for order ${ORDER_ID} failed with message: ${MESSAGE}`);
+      res.send('There was an issue processing your payment. Please contact the merchant for assistance.');
     }
   });
-
-  res.sendStatus(200);
 });
 
 app.listen(port, () => {
