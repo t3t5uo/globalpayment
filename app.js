@@ -24,7 +24,39 @@ app.get("/", (req, res) => {
   const hppLink = `https://pay.sandbox.realexpayments.com/pay?${hppParams}`;
   console.log(hppLink);
 
-  res.send(`<a href="${hppLink}">Click here to proceed to the payment page</a>`);
+  // res.send(`<a href="${hppLink}">Click here to proceed to the payment page</a>`);
+
+  const hppForm = `
+    <form action="https://pay.sandbox.realexpayments.com/pay" method="post">
+      <input type="hidden" name="MERCHANT_ID" value="${merchantId}">
+      <input type="hidden" name="ACCOUNT" value="${account}">
+      <input type="hidden" name="ORDER_ID" value="${orderId}">
+      <input type="hidden" name="AMOUNT" value="${amount}">
+      <input type="hidden" name="CURRENCY" value="${currency}">
+      <input type="hidden" name="TIMESTAMP" value="${timestamp}">
+      <input type="hidden" name="SHA1HASH" value="${sha1Hash}">
+      ${additionalFields.split("&").map(field => {
+        const [key, value] = field.split("=");
+        return `<input type="hidden" name="${key}" value="${decodeURIComponent(value)}">`;
+      }).join("")}
+      <input type="hidden" name="HPP_RESPONSE_URL" value="${responseUrl}">
+      <input type="submit" value="Proceed to the payment page">
+    </form>
+  `;
+
+  // res.send(hppForm);
+
+  const formString = additionalFields.split("&").map(field => {
+    const [key, value] = field.split("=");
+    return `${key}: ${decodeURIComponent(value)}`;
+  }).join(", ");
+  
+  const response = `
+    ${hppForm}
+    <pre>${hppForm.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>
+  `;
+  
+  res.send(response);
 });
 
 // Handle the response from Realex
