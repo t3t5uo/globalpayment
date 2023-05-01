@@ -22,6 +22,7 @@ app.get("/", (req, res) => {
   const hppParams = `MERCHANT_ID=${encodeURIComponent(merchantId)}&ACCOUNT=${encodeURIComponent(account)}&ORDER_ID=${encodeURIComponent(orderId)}&AMOUNT=${amount}&CURRENCY=${currency}&TIMESTAMP=${encodeURIComponent(timestamp)}&SHA1HASH=${sha1Hash}&${additionalFields}&HPP_RESPONSE_URL=${encodeURIComponent(responseUrl)}`;
 
   const hppLink = `https://pay.sandbox.realexpayments.com/pay?${hppParams}`;
+  console.log(hppLink);
 
   res.send(`<a href="${hppLink}">Click here to proceed to the payment page</a>`);
 });
