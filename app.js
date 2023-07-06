@@ -5,7 +5,7 @@ const port = process.env.PORT || 3000;
 
 // Twilio setup
 const accountSid = "AC072d5085aa0b3699c7a333a295e72b63";
-const authToken = "a27ea08010b73aeaaeb23e74b412a550";
+const authToken = "06699de0fcef90148e5876735472a34e";
 const twilioClient = require("twilio")(accountSid, authToken);
 const twilioPhoneNumber = "+447700168967";
 
