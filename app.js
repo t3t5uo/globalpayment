@@ -36,7 +36,7 @@ app.post("/webhook", (req, res) => {
   const { amount } = req.body;
 
   if (!amount) {
-    res.status(400).send("Amount is missing in the request.");
+    res.status(400).json({ error: "Amount is missing in the request." });
     return;
   }
 
@@ -58,8 +58,9 @@ app.post("/webhook", (req, res) => {
 
   const hppLink = `https://pay.sandbox.realexpayments.com/pay?${hppParams}`;
 
-  res.send(`<a href="${hppLink}">Click here to proceed to the payment page</a>`);
+  res.json({ link: hppLink });
 });
+
 
 
 app.listen(port, () => {
