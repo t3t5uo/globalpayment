@@ -36,7 +36,7 @@ app.post("/response", (req, res) => {
     sendWebhookRequest(webhookUrl, postData)
       .then(() => {
         console.log("Success webhook request completed.");
-        res.send('Your transaction has been successful. Thank you for your purchase.');
+        res.send(`Your payment was successful. Thank you for your purchase. SUPPLEMENTARY_DATA: ${SUPPLEMENTARY_DATA}`);
       })
       .catch(() => {
         console.error("Error sending success webhook request.");
