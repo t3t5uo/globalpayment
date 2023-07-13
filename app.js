@@ -19,47 +19,59 @@ function sendWebhookRequest(url, postData) {
 }
 
 app.post("/response", (req, res) => {
-  console.log("Received response from Global Payments:");
-  console.log(req.body);
+  console.log("hi");
+  let data = "";
 
-  const { ORDER_ID, RESULT, MESSAGE, SUPPLEMENTARY_DATA } = req.body;
+  req.on("data", chunk => {
+    data += chunk.toString();
+  });
 
-  if (RESULT === "00") {
-    console.log(`Payment for order ${ORDER_ID} was successful.`);
-    const successMessage = `Your payment was successful. Thank you for your purchase. Supplementary data: ${SUPPLEMENTARY_DATA}`;
-    res.send(successMessage);
+  req.on("end", () => {
+    const responseFields = data.split("&").reduce((obj, item) => {
+      const [key, value] = item.split("=");
+      obj[key] = decodeURIComponent(value);
+      return obj;
+    }, {});
 
-    const webhookUrl = "https://dev.ajddigital.com/webhook/globalpay-response";
-    const postData = {
-      success: true,
-      bookingId: SUPPLEMENTARY_DATA
-    };
+    const { ORDER_ID, RESULT, MESSAGE, SUPPLEMENTARY_DATA } = responseFields;
 
-    sendWebhookRequest(webhookUrl, postData)
-      .then(() => {
-        console.log("Success webhook request completed.");
-      })
-      .catch(() => {
-        console.error("Error sending success webhook request.");
-      });
-  } else {
-    console.log(`Payment for order ${ORDER_ID} failed with message: ${MESSAGE}`);
-    res.send('There was an issue processing your payment. Please contact the merchant for assistance.');
+    if (RESULT === "00") {
+      console.log(`Payment for order ${ORDER_ID} was successful.`);
+      const successMessage = `Your payment was successful. Thank you for your purchase. Supplementary data: ${SUPPLEMENTARY_DATA}`;
+      res.send(successMessage);
 
-    const webhookUrl = "https://dev.ajddigital.com/webhook/globalpay-response";
-    const postData = {
-      success: false,
-      bookingId: SUPPLEMENTARY_DATA
-    };
+      const webhookUrl = "https://dev.ajddigital.com/webhook/globalpay-response";
+      const postData = {
+        success: true,
+        bookingId: SUPPLEMENTARY_DATA
+      };
 
-    sendWebhookRequest(webhookUrl, postData)
-      .then(() => {
-        console.log("Failure webhook request completed.");
-      })
-      .catch(() => {
-        console.error("Error sending failure webhook request.");
-      });
-  }
+      sendWebhookRequest(webhookUrl, postData)
+        .then(() => {
+          console.log("Success webhook request completed.");
+        })
+        .catch(() => {
+          console.error("Error sending success webhook request.");
+        });
+    } else {
+      console.log(`Payment for order ${ORDER_ID} failed with message: ${MESSAGE}`);
+      res.send('There was an issue processing your payment. Please contact the merchant for assistance.');
+
+      const webhookUrl = "https://dev.ajddigital.com/webhook/globalpay-response";
+      const postData = {
+        success: false,
+        bookingId: SUPPLEMENTARY_DATA
+      };
+
+      sendWebhookRequest(webhookUrl, postData)
+        .then(() => {
+          console.log("Failure webhook request completed.");
+        })
+        .catch(() => {
+          console.error("Error sending failure webhook request.");
+        });
+    }
+  });
 });
 
 app.post("/webhook", (req, res) => {
