@@ -26,6 +26,8 @@ app.post("/response", (req, res) => {
 
   if (RESULT === "00") {
     console.log(`Payment for order ${ORDER_ID} was successful.`);
+    const successMessage = `Your payment was successful. Thank you for your purchase. Supplementary data: ${SUPPLEMENTARY_DATA}`;
+    res.send(successMessage);
 
     const webhookUrl = "https://dev.ajddigital.com/webhook/globalpay-response";
     const postData = {
@@ -36,15 +38,13 @@ app.post("/response", (req, res) => {
     sendWebhookRequest(webhookUrl, postData)
       .then(() => {
         console.log("Success webhook request completed.");
-        const successMessage = `Your payment was successful. Thank you for your purchase. Supplementary data: ${SUPPLEMENTARY_DATA}`;
-        res.send(successMessage);
       })
       .catch(() => {
         console.error("Error sending success webhook request.");
-        res.status(500).send('There was an issue connecting back to the merchant\'s website. Please contact the merchant and advise them that you received this error message.');
       });
   } else {
     console.log(`Payment for order ${ORDER_ID} failed with message: ${MESSAGE}`);
+    res.send('There was an issue processing your payment. Please contact the merchant for assistance.');
 
     const webhookUrl = "https://dev.ajddigital.com/webhook/globalpay-response";
     const postData = {
@@ -55,11 +55,9 @@ app.post("/response", (req, res) => {
     sendWebhookRequest(webhookUrl, postData)
       .then(() => {
         console.log("Failure webhook request completed.");
-        res.status(500).send('There was an issue connecting back to the merchant\'s website. Please contact the merchant and advise them that you received this error message.');
       })
       .catch(() => {
         console.error("Error sending failure webhook request.");
-        res.status(500).send('There was an issue connecting back to the merchant\'s website. Please contact the merchant and advise them that you received this error message.');
       });
   }
 });
