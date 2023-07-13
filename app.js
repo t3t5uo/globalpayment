@@ -18,42 +18,8 @@ function sendWebhookRequest(url, postData) {
     });
 }
 
-app.post("/response", (req, res) => {
-  console.log("hi");
-  let data = "";
-
-  req.on("data", chunk => {
-    data += chunk.toString();
-    console.log("Received chunk:", chunk.toString());
-  });
-
-  req.on("end", () => {
-    console.log("Request body:", data);
-
-    const responseFields = data.split("&").reduce((obj, item) => {
-      const [key, value] = item.split("=");
-      obj[key] = decodeURIComponent(value);
-      return obj;
-    }, {});
-
-    const { ORDER_ID, RESULT, MESSAGE, SUPPLEMENTARY_DATA } = responseFields;
-
-    console.log("Request responseFields:", responseFields);
-
-    if (RESULT === "00") {
-      console.log(`Payment for order ${ORDER_ID} was successful.`);
-      const successMessage = `Your payment was successful. Thank you for your purchase. Supplementary data: ${SUPPLEMENTARY_DATA}`;
-      res.send(successMessage);
-    } else {
-      console.log(`Payment for order ${ORDER_ID} failed with message: ${MESSAGE}`);
-      res.send('There was an issue processing your payment. Please contact the merchant for assistance.');
-    }
-  });
-});
-
 // app.post("/response", (req, res) => {
 //   console.log("hi");
-
 //   let data = "";
 
 //   req.on("data", chunk => {
@@ -68,51 +34,85 @@ app.post("/response", (req, res) => {
 //       const [key, value] = item.split("=");
 //       obj[key] = decodeURIComponent(value);
 //       return obj;
-//       console.log("obj:", obj);
 //     }, {});
 
-//     console.log("responseFields:", responseFields);
-
 //     const { ORDER_ID, RESULT, MESSAGE, SUPPLEMENTARY_DATA } = responseFields;
+
+//     console.log("Request responseFields:", responseFields);
 
 //     if (RESULT === "00") {
 //       console.log(`Payment for order ${ORDER_ID} was successful.`);
 //       const successMessage = `Your payment was successful. Thank you for your purchase. Supplementary data: ${SUPPLEMENTARY_DATA}`;
 //       res.send(successMessage);
-
-//       const webhookUrl = "https://dev.ajddigital.com/webhook/globalpay-response";
-//       const postData = {
-//         success: true,
-//         bookingId: SUPPLEMENTARY_DATA
-//       };
-
-//       sendWebhookRequest(webhookUrl, postData)
-//         .then(() => {
-//           console.log("Success webhook request completed.");
-//         })
-//         .catch(() => {
-//           console.error("Error sending success webhook request.");
-//         });
 //     } else {
 //       console.log(`Payment for order ${ORDER_ID} failed with message: ${MESSAGE}`);
 //       res.send('There was an issue processing your payment. Please contact the merchant for assistance.');
-
-//       const webhookUrl = "https://dev.ajddigital.com/webhook/globalpay-response";
-//       const postData = {
-//         success: false,
-//         bookingId: SUPPLEMENTARY_DATA
-//       };
-
-//       sendWebhookRequest(webhookUrl, postData)
-//         .then(() => {
-//           console.log("Failure webhook request completed.");
-//         })
-//         .catch(() => {
-//           console.error("Error sending failure webhook request.");
-//         });
 //     }
 //   });
 // });
+
+app.post("/response", (req, res) => {
+  console.log("hi");
+
+  let data = "";
+
+  req.on("data", chunk => {
+    data += chunk.toString();
+    console.log("Received chunk:", chunk.toString());
+  });
+
+  req.on("end", () => {
+    console.log("Request body:", data);
+
+    const responseFields = data.split("&").reduce((obj, item) => {
+      const [key, value] = item.split("=");
+      obj[key] = decodeURIComponent(value);
+      return obj;
+      console.log("obj:", obj);
+    }, {});
+
+    console.log("responseFields:", responseFields);
+
+    const { ORDER_ID, RESULT, MESSAGE, SUPPLEMENTARY_DATA } = responseFields;
+
+    if (RESULT === "00") {
+      console.log(`Payment for order ${ORDER_ID} was successful.`);
+      const successMessage = `Your payment was successful. Thank you for your purchase. Supplementary data: ${SUPPLEMENTARY_DATA}`;
+      res.send(successMessage);
+
+      const webhookUrl = "https://dev.ajddigital.com/webhook/globalpay-response";
+      const postData = {
+        success: true,
+        bookingId: SUPPLEMENTARY_DATA
+      };
+
+      sendWebhookRequest(webhookUrl, postData)
+        .then(() => {
+          console.log("Success webhook request completed.");
+        })
+        .catch(() => {
+          console.error("Error sending success webhook request.");
+        });
+    } else {
+      console.log(`Payment for order ${ORDER_ID} failed with message: ${MESSAGE}`);
+      res.send('There was an issue processing your payment. Please contact the merchant for assistance.');
+
+      const webhookUrl = "https://dev.ajddigital.com/webhook/globalpay-response";
+      const postData = {
+        success: false,
+        bookingId: SUPPLEMENTARY_DATA
+      };
+
+      sendWebhookRequest(webhookUrl, postData)
+        .then(() => {
+          console.log("Failure webhook request completed.");
+        })
+        .catch(() => {
+          console.error("Error sending failure webhook request.");
+        });
+    }
+  });
+});
 
 app.post("/webhook", (req, res) => {
   const { amount, bookingId } = req.body;
@@ -134,7 +134,7 @@ app.post("/webhook", (req, res) => {
   const hashStringWithSecret = crypto.createHash("sha1").update(hashString).digest("hex") + `.${sharedSecret}`;
   const sha1Hash = crypto.createHash("sha1").update(hashStringWithSecret).digest("hex");
 
-  const additionalFields = "HPP_CUSTOMER_EMAIL=test@example.com&HPP_CUSTOMER_PHONENUMBER_MOBILE=44%7C789456123&HPP_BILLING_STREET1=Flat%20123&HPP_BILLING_STREET2=House%20456&HPP_BILLING_STREET3=Unit%204&HPP_BILLING_CITY=Halifax&HPP_BILLING_POSTALCODE=W5%209HR&HPP_BILLING_COUNTRY=826&HPP_SHIPPING_STREET1=Apartment%20852&HPP_SHIPPING_STREET2=Complex%20741&HPP_SHIPPING_STREET3=House%20963&HPP_SHIPPING_CITY=Chicago&HPP_SHIPPING_STATE=IL&HPP_SHIPPING_POSTALCODE=50001&HPP_SHIPPING_COUNTRY=840&HPP_ADDRESS_MATCH_INDICATOR=FALSE&HPP_CHALLENGE_REQUEST_INDICATOR=NO_PREFERENCE";
+  const additionalFields = `SUPPLEMENTARY_DATA=${bookingId}&HPP_CUSTOMER_EMAIL=test@example.com&HPP_CUSTOMER_PHONENUMBER_MOBILE=44%7C789456123&HPP_BILLING_STREET1=Flat%20123&HPP_BILLING_STREET2=House%20456&HPP_BILLING_STREET3=Unit%204&HPP_BILLING_CITY=Halifax&HPP_BILLING_POSTALCODE=W5%209HR&HPP_BILLING_COUNTRY=826&HPP_SHIPPING_STREET1=Apartment%20852&HPP_SHIPPING_STREET2=Complex%20741&HPP_SHIPPING_STREET3=House%20963&HPP_SHIPPING_CITY=Chicago&HPP_SHIPPING_STATE=IL&HPP_SHIPPING_POSTALCODE=50001&HPP_SHIPPING_COUNTRY=840&HPP_ADDRESS_MATCH_INDICATOR=FALSE&HPP_CHALLENGE_REQUEST_INDICATOR=NO_PREFERENCE`;
 
   const hppParams = `MERCHANT_ID=${encodeURIComponent(merchantId)}&ACCOUNT=${encodeURIComponent(account)}&ORDER_ID=${encodeURIComponent(orderId)}&AMOUNT=${amount}&CURRENCY=${currency}&TIMESTAMP=${encodeURIComponent(timestamp)}&SHA1HASH=${sha1Hash}&${additionalFields}&HPP_RESPONSE_URL=${encodeURIComponent(responseUrl)}`;
 
@@ -142,6 +142,7 @@ app.post("/webhook", (req, res) => {
 
   res.json({ hppLink });
 });
+
 
 app.listen(port, () => {
   console.log(`Server is running at http://localhost:${port}`);
