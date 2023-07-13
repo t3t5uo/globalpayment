@@ -20,13 +20,17 @@ function sendWebhookRequest(url, postData) {
 
 app.post("/response", (req, res) => {
   console.log("hi");
+
   let data = "";
 
   req.on("data", chunk => {
     data += chunk.toString();
+    console.log("Received chunk:", chunk.toString());
   });
 
   req.on("end", () => {
+    console.log("Request body:", data);
+    
     const responseFields = data.split("&").reduce((obj, item) => {
       const [key, value] = item.split("=");
       obj[key] = decodeURIComponent(value);
