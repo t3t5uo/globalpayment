@@ -39,7 +39,7 @@ app.post("/response", (req, res) => {
 
     console.log("responseFields:", responseFields);
 
-    const { ORDER_ID, RESULT, MESSAGE, SUPPLEMENTARY_DATA, AMOUNT, AUTHORIZATION_CODE } = responseFields;
+    const { ORDER_ID, RESULT, MESSAGE, SUPPLEMENTARY_DATA, AMOUNT, AUTHCODE } = responseFields;
 
     if (RESULT === "00") {
       console.log(`Payment for order ${ORDER_ID} was successful.`);
@@ -51,7 +51,7 @@ app.post("/response", (req, res) => {
         success: true,
         bookingId: SUPPLEMENTARY_DATA,
         amount: AMOUNT,
-        authorizationCode: AUTHORIZATION_CODE
+        authCode: AUTHCODE
       };
 
       sendWebhookRequest(webhookUrl, postData)
@@ -70,7 +70,7 @@ app.post("/response", (req, res) => {
         success: false,
         bookingId: SUPPLEMENTARY_DATA,
         amount: AMOUNT,
-        authorizationCode: AUTHORIZATION_CODE
+        authCode: AUTHCODE
       };
 
       sendWebhookRequest(webhookUrl, postData)
