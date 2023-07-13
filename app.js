@@ -24,11 +24,42 @@ app.post("/response", (req, res) => {
 
     if (RESULT === "00") {
       console.log(`Payment for order ${ORDER_ID} was successful.`);
-      const successMessage = `Your payment was successful. Thank you for your purchase. Supplementary data: ${SUPPLEMENTARY_DATA}`;
-      res.send(successMessage);
+
+      // Make HTTP POST request with success set to true
+      const webhookUrl = "https://dev.ajddigital.com/webhook/globalpay-response";
+      const postData = {
+        success: true,
+        bookingId: SUPPLEMENTARY_DATA
+      };
+
+      axios.post(webhookUrl, postData)
+        .then(response => {
+          console.log("Webhook request sent successfully.");
+          res.send(`Your payment was successful. Thank you for your purchase. Supplementary data: ${SUPPLEMENTARY_DATA}`);
+        })
+        .catch(error => {
+          console.error("Error sending webhook request:", error);
+          res.send(`Your payment was successful, but there was an issue with the webhook. Please contact the merchant for assistance. Supplementary data: ${SUPPLEMENTARY_DATA}`);
+        });
     } else {
       console.log(`Payment for order ${ORDER_ID} failed with message: ${MESSAGE}`);
-      res.send('There was an issue processing your payment. Please contact the merchant for assistance.');
+
+      // Make HTTP POST request with success set to false
+      const webhookUrl = "https://dev.ajddigital.com/webhook/globalpay-response";
+      const postData = {
+        success: false,
+        bookingId: SUPPLEMENTARY_DATA
+      };
+
+      axios.post(webhookUrl, postData)
+        .then(response => {
+          console.log("Webhook request sent successfully.");
+          res.send('There was an issue processing your payment. Please contact the merchant for assistance.');
+        })
+        .catch(error => {
+          console.error("Error sending webhook request:", error);
+          res.send('There was an issue processing your payment, and there was also an issue with the webhook. Please contact the merchant for assistance.');
+        });
     }
   });
 });
