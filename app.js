@@ -18,39 +18,6 @@ function sendWebhookRequest(url, postData) {
     });
 }
 
-// app.post("/response", (req, res) => {
-//   console.log("hi");
-//   let data = "";
-
-//   req.on("data", chunk => {
-//     data += chunk.toString();
-//     console.log("Received chunk:", chunk.toString());
-//   });
-
-//   req.on("end", () => {
-//     console.log("Request body:", data);
-
-//     const responseFields = data.split("&").reduce((obj, item) => {
-//       const [key, value] = item.split("=");
-//       obj[key] = decodeURIComponent(value);
-//       return obj;
-//     }, {});
-
-//     const { ORDER_ID, RESULT, MESSAGE, SUPPLEMENTARY_DATA } = responseFields;
-
-//     console.log("Request responseFields:", responseFields);
-
-//     if (RESULT === "00") {
-//       console.log(`Payment for order ${ORDER_ID} was successful.`);
-//       const successMessage = `Your payment was successful. Thank you for your purchase. Supplementary data: ${SUPPLEMENTARY_DATA}`;
-//       res.send(successMessage);
-//     } else {
-//       console.log(`Payment for order ${ORDER_ID} failed with message: ${MESSAGE}`);
-//       res.send('There was an issue processing your payment. Please contact the merchant for assistance.');
-//     }
-//   });
-// });
-
 app.post("/response", (req, res) => {
   console.log("hi");
 
@@ -68,12 +35,11 @@ app.post("/response", (req, res) => {
       const [key, value] = item.split("=");
       obj[key] = decodeURIComponent(value);
       return obj;
-      console.log("obj:", obj);
     }, {});
 
     console.log("responseFields:", responseFields);
 
-    const { ORDER_ID, RESULT, MESSAGE, SUPPLEMENTARY_DATA } = responseFields;
+    const { ORDER_ID, RESULT, MESSAGE, SUPPLEMENTARY_DATA, AMOUNT, AUTHORIZATION_CODE } = responseFields;
 
     if (RESULT === "00") {
       console.log(`Payment for order ${ORDER_ID} was successful.`);
@@ -83,7 +49,9 @@ app.post("/response", (req, res) => {
       const webhookUrl = "https://dev.ajddigital.com/webhook/globalpay-response";
       const postData = {
         success: true,
-        bookingId: SUPPLEMENTARY_DATA
+        bookingId: SUPPLEMENTARY_DATA,
+        amount: AMOUNT,
+        authorizationCode: AUTHORIZATION_CODE
       };
 
       sendWebhookRequest(webhookUrl, postData)
@@ -100,7 +68,9 @@ app.post("/response", (req, res) => {
       const webhookUrl = "https://dev.ajddigital.com/webhook/globalpay-response";
       const postData = {
         success: false,
-        bookingId: SUPPLEMENTARY_DATA
+        bookingId: SUPPLEMENTARY_DATA,
+        amount: AMOUNT,
+        authorizationCode: AUTHORIZATION_CODE
       };
 
       sendWebhookRequest(webhookUrl, postData)
