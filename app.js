@@ -20,11 +20,12 @@ app.post("/response", (req, res) => {
       return obj;
     }, {});
 
-    const { ORDER_ID, RESULT, MESSAGE } = responseFields;
+    const { ORDER_ID, RESULT, MESSAGE, SUPPLEMENTARY_DATA } = responseFields;
 
     if (RESULT === "00") {
       console.log(`Payment for order ${ORDER_ID} was successful.`);
-      res.send('Your payment was successful. Thank you for your purchase.');
+      const successMessage = `Your payment was successful. Thank you for your purchase. Supplementary data: ${SUPPLEMENTARY_DATA}`;
+      res.send(successMessage);
     } else {
       console.log(`Payment for order ${ORDER_ID} failed with message: ${MESSAGE}`);
       res.send('There was an issue processing your payment. Please contact the merchant for assistance.');
@@ -32,11 +33,12 @@ app.post("/response", (req, res) => {
   });
 });
 
-app.post("/webhook", (req, res) => {
-  const { amount } = req.body;
 
-  if (!amount) {
-    res.status(400).json({ error: "Amount is missing in the request." });
+app.post("/webhook", (req, res) => {
+  const { amount, bookingId } = req.body;
+
+  if (!amount || !bookingId) {
+    res.status(400).json({ error: "Amount or bookingId is missing in the request." });
     return;
   }
 
@@ -52,7 +54,7 @@ app.post("/webhook", (req, res) => {
   const hashStringWithSecret = crypto.createHash("sha1").update(hashString).digest("hex") + `.${sharedSecret}`;
   const sha1Hash = crypto.createHash("sha1").update(hashStringWithSecret).digest("hex");
 
-  const additionalFields = "HPP_CUSTOMER_EMAIL=test@example.com&HPP_CUSTOMER_PHONENUMBER_MOBILE=44%7C789456123&HPP_BILLING_STREET1=Flat%20123&HPP_BILLING_STREET2=House%20456&HPP_BILLING_STREET3=Unit%204&HPP_BILLING_CITY=Halifax&HPP_BILLING_POSTALCODE=W5%209HR&HPP_BILLING_COUNTRY=826&HPP_SHIPPING_STREET1=Apartment%20852&HPP_SHIPPING_STREET2=Complex%20741&HPP_SHIPPING_STREET3=House%20963&HPP_SHIPPING_CITY=Chicago&HPP_SHIPPING_STATE=IL&HPP_SHIPPING_POSTALCODE=50001&HPP_SHIPPING_COUNTRY=840&HPP_ADDRESS_MATCH_INDICATOR=FALSE&HPP_CHALLENGE_REQUEST_INDICATOR=NO_PREFERENCE";
+  const additionalFields = `HPP_CUSTOMER_EMAIL=test@example.com&HPP_CUSTOMER_PHONENUMBER_MOBILE=44%7C789456123&HPP_BILLING_STREET1=Flat%20123&HPP_BILLING_STREET2=House%20456&HPP_BILLING_STREET3=Unit%204&HPP_BILLING_CITY=Halifax&HPP_BILLING_POSTALCODE=W5%209HR&HPP_BILLING_COUNTRY=826&HPP_SHIPPING_STREET1=Apartment%20852&HPP_SHIPPING_STREET2=Complex%20741&HPP_SHIPPING_STREET3=House%20963&HPP_SHIPPING_CITY=Chicago&HPP_SHIPPING_STATE=IL&HPP_SHIPPING_POSTALCODE=50001&HPP_SHIPPING_COUNTRY=840&HPP_ADDRESS_MATCH_INDICATOR=FALSE&HPP_CHALLENGE_REQUEST_INDICATOR=NO_PREFERENCE&SUPPLEMENTARY_DATA=${encodeURIComponent(bookingId)}`;
 
   const hppParams = `MERCHANT_ID=${encodeURIComponent(merchantId)}&ACCOUNT=${encodeURIComponent(account)}&ORDER_ID=${encodeURIComponent(orderId)}&AMOUNT=${amount}&CURRENCY=${currency}&TIMESTAMP=${encodeURIComponent(timestamp)}&SHA1HASH=${sha1Hash}&${additionalFields}&HPP_RESPONSE_URL=${encodeURIComponent(responseUrl)}`;
 
@@ -60,8 +62,6 @@ app.post("/webhook", (req, res) => {
 
   res.json({ link: hppLink });
 });
-
-
 
 app.listen(port, () => {
   console.log(`Server is running at http://localhost:${port}`);
