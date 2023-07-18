@@ -98,15 +98,12 @@ app.post("/webhook", (req, res) => {
   const orderId = crypto.randomBytes(16).toString("hex");
   const currency = "USD";
   const sharedSecret = "Y9go4mpkml";
-  const responseUrl = `${process.env.APP_URL || "http://localhost:3000"}/response`;
+  const responseUrl = `${process.env.APP_URL || 'http://localhost:3000'}/response`;
 
   const timestamp = new Date().toISOString().slice(0, 19).replace(/[-T:]/g, "");
   const hashString = `${timestamp}.${merchantId}.${orderId}.${amount}.${currency}`;
   const hashStringWithSecret = crypto.createHash("sha1").update(hashString).digest("hex") + `.${sharedSecret}`;
   const sha1Hash = crypto.createHash("sha1").update(hashStringWithSecret).digest("hex");
-
-  const additionalFields = `SUPPLEMENTARY_DATA=${bookingId}&HPP_CUSTOMER_PHONENUMBER_MOBILE=${encodeURIComponent(phoneNumber)}&HPP_BILLING_STREET1=Flat%20123&HPP_BILLING_STREET2=House%20456&HPP_BILLING_STREET3=Unit%204&HPP_BILLING_CITY=Halifax&HPP_BILLING_POSTALCODE=W5%209HR&HPP_BILLING_COUNTRY=826&HPP_SHIPPING_STREET1=Apartment%20852&HPP_SHIPPING_STREET2=Complex%20741&HPP_SHIPPING_STREET3=House%20963&HPP_SHIPPING_CITY=Chicago&HPP_SHIPPING_STATE=IL&HPP_SHIPPING_POSTALCODE=50001&HPP_SHIPPING_COUNTRY=840&HPP_ADDRESS_MATCH_INDICATOR=FALSE&HPP_CHALLENGE_REQUEST_INDICATOR=NO_PREFERENCE`;
-
   const hppLink = `https://pay.sandbox.realexpayments.com/pay?SUPPLEMENTARY_DATA=${bookingId}&TIMESTAMP=${timestamp}&MERCHANT_ID=${merchantId}&ACCOUNT=${account}&ORDER_ID=${orderId}&AMOUNT=${amount}&CURRENCY=${currency}&AUTO_SETTLE_FLAG=1&COMMENT1=Mobile%20Channel&HPP_VERSION=2&HPP_CHANNEL=ECOM&HPP_LANG=en&HPP_CAPTURE_ADDRESS=true&HPP_REMOVE_SHIPPING=true&HPP_DO_NOT_RETURN_ADDRESS=false&MERCHANT_RESPONSE_URL=${responseUrl}&CARD_PAYMENT_BUTTON=Pay%20Invoice&CUSTOM_FIELD_NAME=Custom%20Field%20Data&HPP_CUSTOMER_PHONENUMBER_MOBILE=${encodeURIComponent(phoneNumber)}&SHA1HASH=${sha1Hash}`;
 
   res.json({ hppLink });
