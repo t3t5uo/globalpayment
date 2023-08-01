@@ -109,6 +109,114 @@ app.post("/webhook", (req, res) => {
   res.json({ hppLink });
 });
 
+
+
+
+app.get("/confirm/:bookingId", (req, res) => {
+  const { bookingId } = req.params;
+
+  // Render the confirmation page with a "Confirm" button
+  const confirmationPage = `
+  <!DOCTYPE html>
+  <html>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirmation Page</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        padding: 20px;
+      }
+      h1 {
+        margin-bottom: 20px;
+      }
+      button {
+        background-color: #007BFF;
+        color: #FFFFFF;
+        border: none;
+        padding: 10px 20px;
+        font-size: 16px;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+      #message {
+        margin-top: 20px;
+        font-size: 18px;
+      }
+      @media screen and (max-width: 480px) {
+        /* Mobile optimization */
+        h1 {
+          font-size: 24px;
+        }
+        button {
+          font-size: 14px;
+          padding: 8px 16px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Bermuda Island Taxi</h1>
+    <p>Please press 'Confirm' if you would like to pay for your ride (<span id="bookingId"></span>) by credit card.</p>
+    <button onclick="confirmBooking('${bookingId}')">Confirm</button>
+    <div id="message"></div>
+    <script>
+      // Get the bookingId value from the server-side rendering
+      const bookingId = '${bookingId}';
+      document.getElementById('bookingId').innerText = bookingId;
+  
+      function confirmBooking(bookingId) {
+        fetch('/complete/' + bookingId, { method: 'POST' })
+          .then(response => {
+            if (response.ok) {
+              document.getElementById('message').innerText = 'Thank you for confirming. When your trip ends you will be sent a payment link.';
+            } else {
+              document.getElementById('message').innerText = 'Error confirming booking.';
+            }
+          })
+          .catch(error => {
+            console.error('Error confirming booking:', error);
+            document.getElementById('message').innerText = 'An error occurred while confirming the booking.';
+          });
+      }
+    </script>
+  </body>
+  </html>
+  `;
+  res.send(confirmationPage);
+});
+
+app.post("/complete/:bookingId", (req, res) => {
+  const { bookingId } = req.params;
+
+  // Make a POST call to https://dev.ajddigital.com/webhook/updatebooking with the bookingId and action: "complete"
+  const webhookUrl = "https://dev.ajddigital.com/webhook/updatebooking";
+  const postData = {
+    bookingId: bookingId,
+    action: "complete",
+  };
+
+  axios
+    .post(webhookUrl, postData)
+    .then((response) => {
+      console.log("Booking update request sent successfully.");
+      // Check if the webhook response is in the expected format (you may need to adjust this based on the actual response structure)
+      if (response.data && response.data.success === true) {
+        res.json({ success: true });
+      } else {
+        res.json({ success: false });
+      }
+    })
+    .catch((error) => {
+      console.error("Error sending booking update request:", error);
+      res.json({ success: false });
+    });
+});
+
+
+
 app.listen(port, () => {
   console.log(`Server is running at http://localhost:${port}`);
 });
